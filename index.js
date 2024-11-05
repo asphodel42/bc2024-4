@@ -2,6 +2,7 @@ const http = require("http");
 const fs = require("fs/promises");
 const path = require("path");
 const { Command } = require("commander");
+const superagent = require("superagent");
 
 const program = new Command();
 
@@ -20,6 +21,18 @@ if (!host || !port || !cache) {
   program.help();
   process.exit(1);
 }
+
+async function ensureCacheDir(cachePath) {
+  try {
+    await fs.access(cachePath);
+    console.log(`Cache directory already exists at ${cachePath}`);
+  } catch {
+    await fs.mkdir(cachePath, { recursive: true });
+    console.log(`Cache directory created at ${cachePath}`);
+  }
+}
+
+
 
 // Creating web-server
 const server = http.createServer(async (req, res) => {
@@ -72,4 +85,5 @@ const server = http.createServer(async (req, res) => {
 
 server.listen(port, host, () => {
   console.log(`Server started at http://${host}:${port}`);
+  ensureCacheDir(cache);
 });
