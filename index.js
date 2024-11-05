@@ -45,8 +45,18 @@ const server = http.createServer(async (req, res) => {
       res.writeHead(200, { "Content-Type": "image/jpeg" });
       res.end(image);
     } catch (error) {
-      res.writeHead(404, { "Content-Type": "text/plain" });
-      res.end("Image not found\n");
+      try {
+        const response = await superagent.get(`https://http.cat/${httpCode}`);
+        
+        // Save image to cache
+        await fs.writeFile(imagePath, response.body);
+        
+        res.writeHead(200, { "Content-Type": "image/jpeg" });
+        res.end(response.body);
+      } catch (err) {
+        res.writeHead(404, { "Content-Type": "text/plain" });
+        res.end("Image not found\n");
+      }
     }
 
   } else if (req.method === "PUT") {
